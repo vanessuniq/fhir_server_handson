@@ -13,11 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 
-/**
- * Servlet principal de HAPI FHIR.
- * 
- * @author julian.martinez
- */
+
 @WebServlet( urlPatterns = { "/fhir/*" }, displayName = "FHIR Server", loadOnStartup = 1 )
 public class FhirRestfulServlet extends RestfulServer {
 	

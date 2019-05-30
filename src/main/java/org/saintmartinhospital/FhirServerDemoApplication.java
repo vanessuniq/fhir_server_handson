@@ -10,11 +10,11 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
-@EnableTransactionManagement
-@EnableJpaRepositories( "org.saintmartinhospital.business.repository" )
 @ComponentScan( "org.saintmartinhospital" )
+@EnableJpaRepositories( "org.saintmartinhospital.business.repository" )
 @EntityScan( basePackages = { "org.saintmartinhospital.business.domain" } )
-@ServletComponentScan
+@EnableTransactionManagement
+@ServletComponentScan	// this enables the WebServlet annotation in our ResftulServlet
 @Slf4j
 public class FhirServerDemoApplication {
 	

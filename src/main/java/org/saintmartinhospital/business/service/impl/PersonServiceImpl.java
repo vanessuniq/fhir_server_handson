@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
-public class PersonaServiceImpl implements PersonService {
+public class PersonServiceImpl implements PersonService {
 	
 	@Autowired
 	private PersonRepository personRepo;
