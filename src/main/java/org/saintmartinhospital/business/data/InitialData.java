@@ -21,13 +21,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 
 @Component
-@ConfigurationProperties("data.doctype")
 public class InitialData {
 	
 	private static final String PROP_SEP = ",";
