@@ -8,7 +8,6 @@ import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Period;
 import org.saintmartinhospital.business.domain.Person;
-import org.saintmartinhospital.business.domain.PersonDoc;
 import org.saintmartinhospital.fhir.service.patient.converter.mappings.PatientIdentifierMapping;
 import org.saintmartinhospital.fhir.service.patient.converter.identifier.PatientIdentifierInfo;
 import org.saintmartinhospital.fhir.service.patient.converter.identifier.PatientIdentifierTypeEnum;
@@ -34,15 +33,14 @@ public class PatientIdentifierMappingImpl implements PatientIdentifierMapping {
 		// Add the patient-id identifier
 		addIdentifier( patient, PATIENT_ID, person.getId(), person.getCreateDate(), null );
 		
-		if( CollectionUtils.isNotEmpty( person.getDocs() ) )
-			for( PersonDoc personDoc: person.getDocs() ) {
-				String docAbrev = personDoc.getDocType().getAbrev();
-				PatientIdentifierTypeEnum idType = PatientIdentifierTypeEnum.valueOf( docAbrev );
-				if( idType == null )
-					throw new IllegalStateException( String.format( "Unexpected patient identifier type %s", docAbrev ) );
-				
-				addIdentifier( patient, idType, personDoc.getDocValue(), personDoc.getCreateDate(), personDoc.getDeleteDate() );
-			}
+		CollectionUtils.emptyIfNull( person.getDocs() ).forEach( personDoc -> {
+			String docAbrev = personDoc.getDocType().getAbrev();
+			PatientIdentifierTypeEnum idType = PatientIdentifierTypeEnum.valueOf( docAbrev );
+			if( idType == null )
+				throw new IllegalStateException( String.format( "Unexpected patient identifier type %s", docAbrev ) );
+
+			addIdentifier( patient, idType, personDoc.getDocValue(), personDoc.getCreateDate(), personDoc.getDeleteDate() );
+		});
 	}
 
 	@Override
