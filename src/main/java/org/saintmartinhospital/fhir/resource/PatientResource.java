@@ -8,7 +8,8 @@ import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Patient;
 import org.saintmartinhospital.fhir.common.FhirResourceUtils;
 import org.saintmartinhospital.fhir.service.patient.PatientService;
-import org.saintmartinhospital.fhir.service.patient.converter.PatientIdentifierTypeManager;
+import org.saintmartinhospital.fhir.service.patient.converter.identifier.PatientIdentifierTypeEnum;
+import org.saintmartinhospital.fhir.service.patient.converter.identifier.PatientIdentifierTypeManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -28,10 +29,10 @@ public class PatientResource implements IResourceProvider {
 	
 	@Read()
 	public Patient findById( @IdParam IdType id ) {
-		Long patientId = FhirResourceUtils.getLong( id );
+		Integer patientId = FhirResourceUtils.getInteger( id );
 		Patient patient = patientService.findById( patientId );
 		if( patient == null )
-			throw new ResourceNotFoundException( String.format( "Patient with identifier %s not found", typeManager.formatIdValue( patientId ) ) );
+			throw new ResourceNotFoundException( String.format( "Patient with identifier %s not found", typeManager.formatIdValue( PatientIdentifierTypeEnum.PATIENT_ID, patientId ) ) );
 		return patient;
 	}	
 	

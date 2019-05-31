@@ -26,6 +26,11 @@ public class FhirResourceUtils {
 		return id == null? null: id.getIdPartAsLong();
 	}
 	
+	public static Integer getInteger( IdType id ) {
+		Long num = getLong( id );
+		return num == null? null: num.intValue();
+	}
+	
 	public static Calendar getCalendar( DateParam primitive ) {
 		Calendar calendar = null;
 		if( primitive != null ) {

@@ -24,7 +24,7 @@ public class FhirRestfulServlet extends RestfulServer {
 	private static final int DEFAULT_PAGE_SIZE = 10;
 	private static final int MAX_PAGE_SIZE = 100;
 	
-	@Value("${hospital.url}")
+	@Value("${fhir.hospital.url}")
 	private String serverBaseUrl;
 	
 

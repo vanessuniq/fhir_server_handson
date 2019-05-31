@@ -4,6 +4,6 @@ import org.hl7.fhir.r4.model.Patient;
 
 public interface PatientService {
 
-	Patient findById( Long patientId );	
+	Patient findById( Integer patientId );	
 	
 }
