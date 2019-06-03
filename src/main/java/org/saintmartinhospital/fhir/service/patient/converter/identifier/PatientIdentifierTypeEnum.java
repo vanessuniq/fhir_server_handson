@@ -1,5 +1,8 @@
 package org.saintmartinhospital.fhir.service.patient.converter.identifier;
 
+import lombok.Getter;
+
+@Getter
 public enum PatientIdentifierTypeEnum {
 	PATIENT_ID( "patient-id" ),
 	NI( "ni" ),
@@ -11,7 +14,4 @@ public enum PatientIdentifierTypeEnum {
 		this.name = name;
 	}
 	
-	public String getName() {
-		return name;
-	}
 }

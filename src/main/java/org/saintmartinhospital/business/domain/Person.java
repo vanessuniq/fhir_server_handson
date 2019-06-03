@@ -45,21 +45,25 @@ public class Person implements java.io.Serializable {
 	private String secondName;
 
 	@NonNull
-	@Column(name = "PRSN_FATHERS_LASTNAME", nullable = false, length = 50)
-	private String fathersLastname;
+	@Column(name = "PRSN_FATHERS_LAST_NAME", nullable = false, length = 50)
+	private String fathersLastName;
 
 	@EqualsAndHashCode.Exclude
-	@Column(name = "PRSN_MOTHERS_LASTNAME", length = 50)
-	private String mothersLastname;
+	@Column(name = "PRSN_MOTHERS_LAST_NAME", length = 50)
+	private String mothersLastName;
 
 	@NonNull
-	@Column(name = "PRSN_BIRTHDATE", nullable = false, length = 7)
-	private Calendar birthdate;
+	@Column(name = "PRSN_BIRTH_DATE", nullable = false, length = 7)
+	private Calendar birthDate;
 
 	@NonNull
 	@Enumerated( EnumType.STRING )
 	@Column(name = "PRSN_GENDER", length = 30)
 	private GenderEnum gender;
+	
+	@NonNull
+	@Column(name = "PRSN_EMAIL", length = 100)
+	private String email;
 
 	@EqualsAndHashCode.Exclude
 	@Column(name = "PRSN_NICK_NAME", length = 50)

@@ -8,6 +8,7 @@ import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Period;
 import org.saintmartinhospital.business.domain.Person;
+import org.saintmartinhospital.business.domain.PersonDoc;
 import org.saintmartinhospital.fhir.service.patient.converter.mappings.PatientIdentifierMapping;
 import org.saintmartinhospital.fhir.service.patient.converter.identifier.PatientIdentifierInfo;
 import org.saintmartinhospital.fhir.service.patient.converter.identifier.PatientIdentifierTypeEnum;
@@ -33,14 +34,13 @@ public class PatientIdentifierMappingImpl implements PatientIdentifierMapping {
 		// Add the patient-id identifier
 		addIdentifier( patient, PATIENT_ID, person.getId(), person.getCreateDate(), null );
 		
-		CollectionUtils.emptyIfNull( person.getDocs() ).forEach( personDoc -> {
-			String docAbrev = personDoc.getDocType().getAbrev();
-			PatientIdentifierTypeEnum idType = PatientIdentifierTypeEnum.valueOf( docAbrev );
-			if( idType == null )
-				throw new IllegalStateException( String.format( "Unexpected patient identifier type %s", docAbrev ) );
-
-			addIdentifier( patient, idType, personDoc.getDocValue(), personDoc.getCreateDate(), personDoc.getDeleteDate() );
-		});
+		if( CollectionUtils.isNotEmpty( person.getDocs() ) )
+			for( PersonDoc personDoc: person.getDocs() ) {
+				PatientIdentifierTypeEnum idType = PatientIdentifierTypeEnum.valueOf( personDoc.getDocType().getAbrev() );
+				if( idType == null )
+					throw new IllegalArgumentException( String.format( "Unexpected %s system identifier" ) );
+				addIdentifier( patient, idType, personDoc.getDocValue(), personDoc.getCreateDate(), personDoc.getDeleteDate() );
+			}
 	}
 
 	@Override
@@ -53,28 +53,26 @@ public class PatientIdentifierMappingImpl implements PatientIdentifierMapping {
  */	
 	
 	private void addIdentifier( Patient patient, PatientIdentifierTypeEnum idType, Object value, Calendar create, Calendar delete ) {
-		Validate.notNull( patient, "Unexpected null patient" );
-		Validate.notNull( idType, "Unexpected null type identifier" );
-		Validate.notNull( value, "Unexpected null value identifier" );
-		
-		PatientIdentifierInfo idInfo = typeManager.findByIdentifierType( idType );
-		if( idInfo == null )
-			throw new IllegalStateException( String.format( "Can't find information about %s identifier", idType ) );
-		
-		if( idInfo.getIdentifierType().equals( PATIENT_ID ) )
-			patient.setId( new IdType( value.toString() ) );
+		if( patient != null && idType != null && value != null ) {
+			PatientIdentifierInfo idInfo = typeManager.findByIdentifierType( idType );
+			if( idInfo == null )
+				throw new IllegalStateException( String.format( "Can't find information about %s identifier", idType ) );
 
-		Identifier identifier = patient.addIdentifier();
-		identifier.setUse( idInfo.getUse() );
-		identifier.setSystemElement( idInfo.getUriType() );
-		identifier.setValue( value.toString() );
-		
-		if( create != null ) {
-			Period period = new Period();
-			period.setStart( create.getTime() );
-			if( delete != null )
-				period.setEnd( delete.getTime() );
-			identifier.setPeriod( period );
+			if( idInfo.getIdentifierType().equals( PATIENT_ID ) )
+				patient.setId( new IdType( value.toString() ) );
+
+			Identifier identifier = patient.addIdentifier();
+			identifier.setUse( idInfo.getUse() );
+			identifier.setSystemElement( idInfo.getUriType() );
+			identifier.setValue( value.toString() );
+
+			if( create != null ) {
+				Period period = new Period();
+				period.setStart( create.getTime() );
+				if( delete != null )
+					period.setEnd( delete.getTime() );
+				identifier.setPeriod( period );
+			}
 		}
 	}
 

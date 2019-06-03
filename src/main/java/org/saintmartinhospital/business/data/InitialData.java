@@ -19,6 +19,7 @@ import java.util.Map;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.hl7.fhir.r4.model.ContactPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -35,7 +36,7 @@ public class InitialData {
 	
 	private static enum DocTypePropEnum { ABREV, DESCRIPTION };
 	private final List<Method> DOC_TYPE_METHODS = Arrays.asList( ReflectionUtils.getUniqueDeclaredMethods( DocType.class ) );	
-	private static enum PersonPropEnum { FIRST_NAME, SECOND_NAME, FATHERS_LASTNAME, MOTHERS_LASTNAME, BIRTHDATE, GENDER, NICK_NAME, DOCS };
+	private static enum PersonPropEnum { FIRST_NAME, SECOND_NAME, FATHERS_LAST_NAME, MOTHERS_LAST_NAME, BIRTHDATE, GENDER, EMAIL, NICK_NAME, DOCS };
 	private final List<Method> PERSON_METHODS = Arrays.asList( ReflectionUtils.getUniqueDeclaredMethods( Person.class ) );
 	
 	@Autowired
@@ -103,6 +104,12 @@ public class InitialData {
 		List<String> personDocs = null;
 		
 		String[] props = personAsString.split( PROP_SEP );
+
+		// Check that all expected properties are inside the person string
+		if( props.length != PersonPropEnum.values().length )
+			throw new IllegalStateException( String.format( "Missing property in \"%s\". Expected property order: \"%s\"", personAsString,
+				StringUtils.join( PersonPropEnum.values(), StringUtils.SPACE ) ) );
+		
 		for( PersonPropEnum curProp: PersonPropEnum.values() ) {
 			if( curProp.ordinal() >= props.length )
 				throw new IllegalStateException( String.format( "Missing properties in %s", personAsString ) );
@@ -122,7 +129,7 @@ public class InitialData {
 						try {
 							Calendar birthdate = Calendar.getInstance();
 							birthdate.setTime( BIRTHDATE_FORMAT.parse( value ) );
-							person.setBirthdate( birthdate );
+							person.setBirthDate( birthdate );
 						} catch( ParseException e ) {
 							throw new IllegalArgumentException( String.format( "Invalid date format %s, expected format %s", value, DATE_FORMAT ) );
 						}
