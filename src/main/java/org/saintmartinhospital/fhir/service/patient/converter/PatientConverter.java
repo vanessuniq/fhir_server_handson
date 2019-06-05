@@ -6,4 +6,7 @@ import org.saintmartinhospital.fhir.common.converter.FhirResourceConverter;
 
 
 public interface PatientConverter extends FhirResourceConverter<Person,Patient> {
+	
+	Patient buildPatient( PatientData patientData );
+	
 }

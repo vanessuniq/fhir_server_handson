@@ -4,6 +4,7 @@ import java.util.Calendar;
 import org.apache.commons.lang3.Validate;
 import org.hl7.fhir.r4.model.Patient;
 import org.saintmartinhospital.business.domain.Person;
+import org.saintmartinhospital.fhir.service.patient.converter.PatientData;
 import org.springframework.stereotype.Component;
 import org.saintmartinhospital.fhir.service.patient.converter.mappings.PatientBirthDateMapping;
 
@@ -15,7 +16,7 @@ public class PatientBirthDateMappingImpl implements PatientBirthDateMapping {
 	public void mapTo( Patient patient, Person person ) {
 		Validate.notNull( patient, "Unexpecte null patient" );
 		Validate.notNull( person, "Unexpected null person" );
-		addBirthdate( patient, person.getBirthDate() );	
+		addBirthDate( patient, person.getBirthDate() );	
 	}
 	
 	@Override
@@ -29,13 +30,17 @@ public class PatientBirthDateMappingImpl implements PatientBirthDateMapping {
 			person.setBirthDate( fechaNac );
 		}
 	}
-	
+
+	@Override
+	public void populate( Patient patient, PatientData patientData ) {
+		addBirthDate( patient, patientData.getBirthDate() );
+	}
 
 /*
  * private methods	
  */	
 	
-	private void addBirthdate( Patient patient, Calendar birthdate ) {
+	private void addBirthDate( Patient patient, Calendar birthdate ) {
 		if( birthdate != null )
 			patient.setBirthDate( birthdate.getTime() );
 	}

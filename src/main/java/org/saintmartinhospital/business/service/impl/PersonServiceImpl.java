@@ -1,9 +1,10 @@
 package org.saintmartinhospital.business.service.impl;
 
+import java.util.List;
 import org.saintmartinhospital.business.domain.Person;
-import org.saintmartinhospital.business.repository.PersonRepository;
 import org.saintmartinhospital.business.service.PersonService;
-import java.util.Optional;
+import org.saintmartinhospital.business.repository.PersonDAO;
+import org.saintmartinhospital.business.service.bo.FindPersonByCriteriaBO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,13 +13,23 @@ import org.springframework.transaction.annotation.Transactional;
 public class PersonServiceImpl implements PersonService {
 	
 	@Autowired
-	private PersonRepository personRepo;
+	private PersonDAO personDAO;
 
 	@Transactional
 	@Override
 	public Person findById( Integer id ) {
-		Optional<Person> optional = personRepo.findById( id );
-		return Optional.empty().equals( optional )? null: optional.get();
+		return personDAO.findById( id );
+	}
+
+	@Transactional
+	@Override
+	public List<Person> findByCriteria( FindPersonByCriteriaBO criteria ) {
+		return personDAO.findByCriteria( criteria );
+	}
+
+	@Override
+	public Person attach( Person person ) {
+		return personDAO.attach( person );
 	}
 
 }

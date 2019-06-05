@@ -4,15 +4,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.StringType;
 import org.saintmartinhospital.business.domain.Person;
+import org.saintmartinhospital.fhir.service.patient.converter.PatientData;
 import org.saintmartinhospital.fhir.service.patient.converter.mappings.PatientNameMapping;
+import org.saintmartinhospital.fhir.service.patient.converter.mappings.impl.FamilyExtensionManager.Family;
 import org.saintmartinhospital.fhir.service.patient.converter.mappings.impl.FamilyExtensionManager.ParentEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,9 +38,26 @@ public class PatientNameMappingImpl implements PatientNameMapping {
 	}
 
 	@Override
-	public void mapFrom( Patient patient, Person person ) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	public void mapFrom( Patient patient, final Person person ) {
+		Validate.notNull( patient, "Unexpected null patient" );
+		Validate.notNull( person, "Unexpected null person" );
+		
+		CollectionUtils.emptyIfNull( patient.getName() ).forEach( hname -> {
+			if( HumanName.NameUse.OFFICIAL == hname.getUse() ) {
+				setNames( person, hname );
+				setLastNames( person, hname );
+			} else if( HumanName.NameUse.NICKNAME == hname.getUse() ) {
+				setNickName( person, hname );
+			}
+		});
 	}
+	
+	@Override
+	public void populate( Patient patient, PatientData patientData ) {
+		Validate.notNull( patient, "Unexpected null patient" );
+		Validate.notNull( patientData, "Unexpected null patient data" );
+		addOfficialName( patient, patientData.getName(), null, patientData.getFathersName(), null );
+	}	
 
 /*
  * private methods	
@@ -91,4 +112,28 @@ public class PatientNameMappingImpl implements PatientNameMapping {
 		}
 	}
 
+	private void setNames( Person person, HumanName hname ) {
+		List<StringType> given = hname.getGiven();
+		if( CollectionUtils.isNotEmpty( given ) ) {
+			Iterator<StringType> iterator = given.iterator();
+			person.setFirstName( iterator.next().getValue() );
+			if( iterator.hasNext() )
+				person.setSecondName( iterator.next().getValue() );
+		}
+	}
+	
+	private void setLastNames( Person person, HumanName hname ) {
+		Family parents = familyExtensionManager.getFamily( hname );
+		if( parents != null ) {
+			person.setFathersLastName( parents.getFathersFamily() );
+			person.setMothersLastName( parents.getMothersFamily() );
+		}
+	}
+	
+	private void setNickName( Person person, HumanName hname ) {
+		List<StringType> given = hname.getGiven();
+		if( CollectionUtils.isNotEmpty( given ) )
+			person.setNickName( given.iterator().next().getValue() );
+	}
+	
 }

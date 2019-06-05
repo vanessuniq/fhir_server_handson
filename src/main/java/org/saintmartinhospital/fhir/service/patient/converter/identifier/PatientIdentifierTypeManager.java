@@ -2,6 +2,8 @@ package org.saintmartinhospital.fhir.service.patient.converter.identifier;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.hl7.fhir.r4.model.Identifier;
@@ -28,9 +30,9 @@ public class PatientIdentifierTypeManager {
 	
 	@EventListener
 	private void init( ApplicationReadyEvent event ) {
-		identifierInfo.add( new PatientIdentifierInfo( PATIENT_ID, patient_id_baseurl, PATIENT_ID.getName().toLowerCase(), Identifier.IdentifierUse.OFFICIAL ) );
-		identifierInfo.add( new PatientIdentifierInfo( NI, ni_id_baseurl, NI.getName().toLowerCase(), Identifier.IdentifierUse.USUAL ) );
-		identifierInfo.add( new PatientIdentifierInfo( PP, pp_id_baseurl, PP.getName().toLowerCase(), Identifier.IdentifierUse.USUAL ) );
+		identifierInfo.add( new PatientIdentifierInfo( PATIENT_ID, patient_id_baseurl, PATIENT_ID.getName(), Identifier.IdentifierUse.OFFICIAL ) );
+		identifierInfo.add( new PatientIdentifierInfo( NI, ni_id_baseurl, NI.getName(), Identifier.IdentifierUse.USUAL ) );
+		identifierInfo.add( new PatientIdentifierInfo( PP, pp_id_baseurl, PP.getName(), Identifier.IdentifierUse.USUAL ) );
 	}
 	
 	public String formatIdValue( PatientIdentifierTypeEnum identifierType, Object value ) {
@@ -39,26 +41,28 @@ public class PatientIdentifierTypeManager {
 		return String.format( "%s|%s", info.getUriTypeAsString(), value.toString() );
 	}
 	
-	public PatientIdentifierInfo findByUrl( String url ) {
-		PatientIdentifierInfo found = null;
-		if( StringUtils.isNotEmpty( url ) )
-			for( PatientIdentifierInfo curInfo: identifierInfo )
-				if( curInfo.getUriTypeAsString().equals( url ) ) {
-					found = curInfo;
-					break;
-				}
-		return found;
+	public PatientIdentifierInfo findByUrl( final String url ) {
+		PatientIdentifierInfo idInfo = null;
+
+		if( StringUtils.isNotEmpty( url ) ) {
+			Optional<PatientIdentifierInfo> optionalInfo = identifierInfo.stream().filter( info -> info.getUriTypeAsString().equals( url ) ).findFirst();
+			if( !Optional.empty().equals( optionalInfo ) )
+				idInfo = optionalInfo.get();
+		}
+		
+		return idInfo;
 	}
 	
-	public PatientIdentifierInfo findByIdentifierType( PatientIdentifierTypeEnum identifierType ) {
-		PatientIdentifierInfo found = null;
-		if( identifierType != null )
-			for( PatientIdentifierInfo curInfo: identifierInfo )
-				if( curInfo.getIdentifierType().equals( identifierType ) ) {
-					found = curInfo;
-					break;
-				}
-		return found;
+	public PatientIdentifierInfo findByIdentifierType( final PatientIdentifierTypeEnum identifierType ) {
+		PatientIdentifierInfo idInfo = null;
+		
+		if( identifierType != null ) {
+			Optional<PatientIdentifierInfo> optionalInfo = identifierInfo.stream().filter( info -> info.getIdentifierType().equals( identifierType ) ).findFirst();
+			if( !Optional.empty().equals( optionalInfo ) )
+				idInfo = optionalInfo.get();
+		}
+		
+		return idInfo;
 	}
 
 }

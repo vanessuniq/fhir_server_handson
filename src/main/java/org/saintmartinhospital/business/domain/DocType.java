@@ -40,8 +40,12 @@ public class DocType implements java.io.Serializable {
 	@Column(name = "DCTP_CREATE_DATE", nullable = false, length = 7)
 	private Calendar createDate;
 	
-	public DocType( String abrev, String description, Calendar createDate ) {
+	public DocType( String abrev ) {
 		this.abrev = abrev;
+	}
+	
+	public DocType( String abrev, String description, Calendar createDate ) {
+		this( abrev );
 		this.description = description;
 		this.createDate = createDate;
 	}

@@ -63,6 +63,12 @@
 			<version>${apache.commons-collections.version}</version>
 			<type>jar</type>
 		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-jpamodelgen</artifactId>
+			<scope>compile</scope>
+			<optional>true</optional>
+		</dependency>		
 		
 		<!-- HAPI FHIR dependencies -->
 		<dependency>
@@ -89,7 +95,8 @@
 			<groupId>ca.uhn.hapi.fhir</groupId>
 			<artifactId>hapi-fhir-validation-resources-r4</artifactId>
 			<version>${hapi-fhir.version}</version>
-		</dependency>		
+		</dependency>
+
 	</dependencies>
 
 	<build>

@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import lombok.Data;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.hl7.fhir.r4.model.Extension;
@@ -63,9 +64,9 @@ public class FamilyExtensionManager {
 		return new Extension( parent.getUrl(), new StringType( lastName ) );
 	}
 	
-	public Family getFamily( HumanName hname ) throws TooManyValuesException {
+	public Family getFamily( HumanName hname ) {
 		final Map<ParentEnum,List<String>> parentFound = new HashMap<>();
-		final Family familyFound = new Family();
+		Family familyFound = null;
 		
 		CollectionUtils.emptyIfNull( hname.getFamilyElement().getExtension() ).forEach( extension -> {
 			String family = ((StringType) extension.getValue()).getValueAsString();
@@ -87,11 +88,15 @@ public class FamilyExtensionManager {
 		});
 		
 		// Get last names
-		CollectionUtils.emptyIfNull( parentFound.keySet() ).forEach( parentEnum -> {
-			List<String> lastNames = parentFound.get( parentEnum );
-			if( CollectionUtils.isNotEmpty( lastNames ) && lastNames.size() > 1 )
-				familyFound.set( parentEnum, lastNames.iterator().next() );
-		});
+		if( MapUtils.isNotEmpty( parentFound ) ) {
+			familyFound = new Family();
+			
+			for( ParentEnum parentEnum: parentFound.keySet() ) {
+				List<String> lastNames = parentFound.get( parentEnum );
+				if( CollectionUtils.isNotEmpty( lastNames ) && lastNames.size() >= 0 )
+					familyFound.set( parentEnum, lastNames.iterator().next() );
+			}
+		}
 
 		return familyFound;
 	}

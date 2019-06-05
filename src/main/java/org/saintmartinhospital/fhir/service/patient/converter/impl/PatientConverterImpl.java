@@ -2,13 +2,15 @@ package org.saintmartinhospital.fhir.service.patient.converter.impl;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import javax.annotation.PostConstruct;
 import org.hl7.fhir.r4.model.Patient;
 import org.saintmartinhospital.business.domain.Person;
+import org.saintmartinhospital.business.service.PersonService;
 import org.saintmartinhospital.fhir.common.converter.AbstractFhirResourceConverter;
 import org.saintmartinhospital.fhir.service.patient.converter.PatientConverter;
+import org.saintmartinhospital.fhir.service.patient.converter.PatientData;
 import org.saintmartinhospital.fhir.service.patient.converter.mappings.PatientDataMapping;
+import org.saintmartinhospital.fhir.service.patient.converter.mappings.PatientPopulator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -18,32 +20,51 @@ import org.springframework.transaction.annotation.Transactional;
 public class PatientConverterImpl extends AbstractFhirResourceConverter<Person,Patient> implements PatientConverter {
 	
 	@Autowired
-    private ApplicationContext context;	
+    private ApplicationContext context;
+	@Autowired
+	private PersonService personService;
 	
-	private final List<PatientDataMapping> MAPPINGS = new ArrayList<>();
+	private List<PatientDataMapping> mappers;
+	private List<PatientPopulator> populators;
 	
 	@PostConstruct
 	private void init() {
-		Map<String,PatientDataMapping> map = context.getBeansOfType( PatientDataMapping.class );
-		for( PatientDataMapping curMapping: map.values() )
-			MAPPINGS.add( curMapping );
+		mappers = new ArrayList<>( context.getBeansOfType( PatientDataMapping.class ).values() );
+		populators = new ArrayList<>( context.getBeansOfType( PatientPopulator.class ).values() );
 	}	
 
-	@Transactional
+	@Transactional( readOnly = true )
 	@Override
-	public Patient convertToResource( Person person ) {
+	public Patient convertToResource( final Person person ) {
 		Patient patient = null;
 		if( person != null ) {
-			patient = new Patient();
-			for( PatientDataMapping curMapping: MAPPINGS )
-				curMapping.mapTo( patient, person );
+			Patient result = new Patient();
+			mappers.forEach( mapper -> { mapper.mapTo( result, personService.attach( person ) ); } );
+			patient = result;
 		}
 		return patient;
 	}
 
 	@Override
-	public Person convertToEntity(Patient fhirResource) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	public Person convertToEntity( final Patient patient ) {
+		Person person = null;
+		if( patient != null ) {
+			Person result = new Person();
+			mappers.forEach( mapper -> { mapper.mapFrom( patient, result ); } );
+			person = result;
+		}
+		return person;
+	}
+
+	@Override
+	public Patient buildPatient( final PatientData patientData ) {
+		Patient patient = null;
+		if( patientData != null ) {
+			final Patient result = new Patient();
+			populators.forEach( populator -> { populator.populate( result, patientData ); } );
+			patient = result;
+		}
+		return patient;
 	}
 
 }

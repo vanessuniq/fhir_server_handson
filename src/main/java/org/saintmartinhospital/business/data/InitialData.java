@@ -4,9 +4,6 @@ import org.saintmartinhospital.business.domain.DocType;
 import org.saintmartinhospital.business.domain.GenderEnum;
 import org.saintmartinhospital.business.domain.Person;
 import org.saintmartinhospital.business.domain.PersonDoc;
-import org.saintmartinhospital.business.repository.DocTypeRepository;
-import org.saintmartinhospital.business.repository.PersonDocRepository;
-import org.saintmartinhospital.business.repository.PersonRepository;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.text.ParseException;
@@ -19,12 +16,14 @@ import java.util.Map;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.hl7.fhir.r4.model.ContactPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
+import org.saintmartinhospital.business.repository.PersonDAO;
+import org.saintmartinhospital.business.repository.DocTypeRepository;
+import org.saintmartinhospital.business.repository.PersonDocRepository;
 
 @Component
 public class InitialData {
@@ -45,11 +44,11 @@ public class InitialData {
 	private PersonDataConfig personConfig;
 	
 	@Autowired
-	private DocTypeRepository docTypeRepo;
-	@Autowired 
-	private PersonRepository personRepo;
+	private PersonDAO personDAO;
 	@Autowired
-	private PersonDocRepository personDocRepo;
+	private DocTypeRepository docTypeRepository;
+	@Autowired
+	private PersonDocRepository personDocRepository;
 
 	private static final String DATE_FORMAT = "yyyy-MM-dd";
 	private static final SimpleDateFormat BIRTHDATE_FORMAT = new SimpleDateFormat( DATE_FORMAT );
@@ -89,7 +88,7 @@ public class InitialData {
 		}
 		docType.setCreateDate(  Calendar.getInstance() );
 		
-		return docTypeRepo.save( docType );
+		return docTypeRepository.save( docType );
 	}
 	
 	private void populatePersons( Map<String,DocType> docTypeMap ) {
@@ -143,7 +142,7 @@ public class InitialData {
 				}
 		}
 		person.setCreateDate( Calendar.getInstance() );
-		personRepo.save( person );
+		personDAO.save( person );
 		
 		if( CollectionUtils.isNotEmpty( personDocs ) )
 			savePersonDocs( person, docTypeMap, personDocs );
@@ -166,7 +165,7 @@ public class InitialData {
 				DocType docType = docTypeMap.get( docAbrev );
 				Validate.notNull( docType, "Unknown document abreviation in %s", curPersonDoc );
 
-				personDocRepo.save( new PersonDoc( person, docType, docValue, now ) );
+				personDocRepository.save( new PersonDoc( person, docType, docValue, now ) );
 			}
 		}
 	}

@@ -3,8 +3,8 @@ package org.saintmartinhospital.fhir.config;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.api.EncodingEnum;
 import ca.uhn.fhir.rest.server.FifoMemoryPagingProvider;
-import ca.uhn.fhir.rest.server.HardcodedServerAddressStrategy;
 import ca.uhn.fhir.rest.server.IResourceProvider;
+import ca.uhn.fhir.rest.server.IncomingRequestAddressStrategy;
 import ca.uhn.fhir.rest.server.RestfulServer;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -21,11 +21,8 @@ public class FhirRestfulServlet extends RestfulServer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( FhirRestfulServlet.class );
 	private static final int MAX_QTY_PAGING_PROVIDERS = 10;
-	private static final int DEFAULT_PAGE_SIZE = 10;
+	private static final int DEFAULT_PAGE_SIZE = 5;
 	private static final int MAX_PAGE_SIZE = 100;
-	
-	@Value("${fhir.hospital.url}")
-	private String serverBaseUrl;
 	
 
 	public FhirRestfulServlet() {
@@ -37,14 +34,13 @@ public class FhirRestfulServlet extends RestfulServer {
 		LOGGER.debug( "fhir restful server configuration ... " );
 		
 		ApplicationContext context = ApplicationContextProvider.getApplicationContext();
-//		FhirRestfulServletEnv fhirEnv = (FhirRestfulServletEnv) context.getBean( "fhirRestfulServletEnv" );
 		
 		// Set resource providers
 		setResourceProviders( context.getBeansOfType( IResourceProvider.class ).values() );
 		setDefaultResponseEncoding( EncodingEnum.JSON );
 		
 		// Configure the server's identity/web address
-		setServerAddressStrategy( new HardcodedServerAddressStrategy( serverBaseUrl ) );
+		setServerAddressStrategy( new IncomingRequestAddressStrategy() );
 		
 		// Set paging provider
 		FifoMemoryPagingProvider pagingProvider = new FifoMemoryPagingProvider( MAX_QTY_PAGING_PROVIDERS );
