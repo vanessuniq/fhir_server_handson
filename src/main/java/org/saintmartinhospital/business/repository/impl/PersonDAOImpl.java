@@ -52,11 +52,12 @@ public class PersonDAOImpl implements PersonDAO {
 	
 	@Transactional
 	@Override
-	public void save( Person person ) {
+	public Person save( Person person ) {
 		if( person != null ) {
 			entityManager.persist( person );
             entityManager.flush();
 		}
+		return person;
 	}
 
 	@Transactional

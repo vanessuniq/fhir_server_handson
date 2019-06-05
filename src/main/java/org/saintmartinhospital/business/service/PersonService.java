@@ -9,5 +9,6 @@ public interface PersonService {
 	Person findById( Integer id );
 	List<Person> findByCriteria( FindPersonByCriteriaBO criteria );
 	Person attach( Person person );
+	Person save( Person person );	
 	
 }

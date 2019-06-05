@@ -1,8 +1,10 @@
 package org.saintmartinhospital.fhir.service.patient.impl;
 
 import ca.uhn.fhir.rest.api.server.IBundleProvider;
+import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import java.util.Calendar;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.Validate;
 import org.hl7.fhir.r4.model.Patient;
 import org.saintmartinhospital.business.domain.Person;
 import org.saintmartinhospital.business.domain.PersonDoc;
@@ -53,6 +55,20 @@ public class PatientServiceImpl implements PatientService {
 			.birthDate( person.getBirthDate() ).gender( person.getGender() ).build();
 		
 		return new ListBundleProvider( personService.findByCriteria( criteriaBO ), converter );
+	}
+
+	@Override
+	public Integer create( Patient patient ) {
+		Validate.notNull( patient, "Unexpected null patient" );
+		try {
+			Person person = personService.save( converter.convertToEntity( patient ) );
+			patient = converter.convertToResource( person );
+			return Integer.parseInt( patient.getId() );
+		} catch( NumberFormatException e ) {
+			throw new InvalidRequestException( String.format( "Unexpected not a number identifier \"%s\"", patient.getId() ) );
+		} catch( IllegalArgumentException e ) {
+			throw new InvalidRequestException( e.getMessage() );
+		}
 	}
 
 }

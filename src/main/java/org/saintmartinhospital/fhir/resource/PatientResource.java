@@ -1,9 +1,12 @@
 package org.saintmartinhospital.fhir.resource;
 
+import ca.uhn.fhir.rest.annotation.Create;
 import ca.uhn.fhir.rest.annotation.IdParam;
 import ca.uhn.fhir.rest.annotation.OptionalParam;
 import ca.uhn.fhir.rest.annotation.Read;
+import ca.uhn.fhir.rest.annotation.ResourceParam;
 import ca.uhn.fhir.rest.annotation.Search;
+import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.api.server.IBundleProvider;
 import ca.uhn.fhir.rest.param.DateParam;
 import ca.uhn.fhir.rest.param.StringParam;
@@ -25,6 +28,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class PatientResource implements IResourceProvider {
 	
+	private static final String RESOURCE_TYPE = "Patient";
 	private static final String FAMILY = "family";
 	
 	@Autowired
@@ -65,6 +69,13 @@ public class PatientResource implements IResourceProvider {
 		} catch( IllegalArgumentException e ) {
 			throw new InvalidRequestException( e.getMessage() );
 		}
+	}
+	
+	@Create
+	public MethodOutcome create( @ResourceParam Patient patient ) {
+		MethodOutcome outcome = new MethodOutcome();
+		outcome.setId( new IdType( RESOURCE_TYPE,  patientService.create( patient ).longValue() ) );
+		return outcome;		
 	}
 	
 }

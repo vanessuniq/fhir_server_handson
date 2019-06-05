@@ -1,6 +1,8 @@
 package org.saintmartinhospital.business.service.impl;
 
+import java.util.Calendar;
 import java.util.List;
+import org.apache.commons.collections4.CollectionUtils;
 import org.saintmartinhospital.business.domain.Person;
 import org.saintmartinhospital.business.service.PersonService;
 import org.saintmartinhospital.business.repository.PersonDAO;
@@ -14,6 +16,8 @@ public class PersonServiceImpl implements PersonService {
 	
 	@Autowired
 	private PersonDAO personDAO;
+	@Autowired
+	private PersonDocServiceImpl personDocService;
 
 	@Transactional
 	@Override
@@ -30,6 +34,20 @@ public class PersonServiceImpl implements PersonService {
 	@Override
 	public Person attach( Person person ) {
 		return personDAO.attach( person );
+	}
+
+	@Transactional
+	@Override
+	public Person save( Person person ) {
+		if( person != null ) {
+			person.setCreateDate( Calendar.getInstance() );
+			personDAO.save( person );
+			CollectionUtils.emptyIfNull( person.getDocs() ).forEach( personDoc -> {
+				personDoc.setPerson( person );
+				personDocService.save( personDoc );
+			});
+		}
+		return person;
 	}
 
 }

@@ -12,7 +12,7 @@ public interface PersonDAO {
 
 	Person attach( Person person );
 	Person findById( Integer id );
-	void save( Person person );
+	Person save( Person person );
 	List<Person> findByCriteria( FindPersonByCriteriaBO criteria );	
 	
 }
