@@ -8,6 +8,7 @@ import org.saintmartinhospital.business.service.DocTypeService;
 import org.saintmartinhospital.business.service.PersonDocService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Component
@@ -18,6 +19,7 @@ public class PersonDocServiceImpl implements PersonDocService {
 	@Autowired
 	private DocTypeService docTypeService;
 
+	@Transactional
 	@Override
 	public PersonDoc save( PersonDoc personDoc ) {
 		if( personDoc != null ) {
