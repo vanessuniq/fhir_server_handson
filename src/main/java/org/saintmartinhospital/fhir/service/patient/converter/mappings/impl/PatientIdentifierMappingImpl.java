@@ -1,6 +1,7 @@
 package org.saintmartinhospital.fhir.service.patient.converter.mappings.impl;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -9,10 +10,10 @@ import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Period;
-import org.saintmartinhospital.business.domain.DocType;
-import org.saintmartinhospital.business.domain.Person;
-import org.saintmartinhospital.business.domain.PersonDoc;
-import static org.saintmartinhospital.business.domain.PersonDoc_.docType;
+import org.hl7.fhir.r4.model.Reference;
+import org.saintmartinhospital.legacy.domain.DocType;
+import org.saintmartinhospital.legacy.domain.Person;
+import org.saintmartinhospital.legacy.domain.PersonDoc;
 import org.saintmartinhospital.fhir.service.patient.converter.PatientData;
 import org.saintmartinhospital.fhir.service.patient.converter.mappings.PatientIdentifierMapping;
 import org.saintmartinhospital.fhir.service.patient.converter.identifier.PatientIdentifierInfo;
@@ -27,6 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class PatientIdentifierMappingImpl implements PatientIdentifierMapping {
 
+	private static final String REFERENCE_PREFIX = "Patient/";	
+	
 	@Autowired
 	private PatientIdentifierTypeManager typeManager;
 	
@@ -43,7 +46,7 @@ public class PatientIdentifierMappingImpl implements PatientIdentifierMapping {
 			for( PersonDoc personDoc: person.getDocs() ) {
 				PatientIdentifierTypeEnum idType = PatientIdentifierTypeEnum.valueOf( personDoc.getDocType().getAbrev() );
 				if( idType == null )
-					throw new IllegalArgumentException( String.format( "Unexpected %s system identifier" ) );
+					throw new IllegalArgumentException( String.format( "Unexpected %s system identifier", personDoc.getDocType().getAbrev() ) );
 				addIdentifier( patient, idType, personDoc.getDocValue(), personDoc.getCreateDate(), personDoc.getDeleteDate() );
 			}
 	}
@@ -60,6 +63,8 @@ public class PatientIdentifierMappingImpl implements PatientIdentifierMapping {
 				
 				if( idInfo.getIdentifierType() == PatientIdentifierTypeEnum.PATIENT_ID )
 					try {
+						Validate.isTrue( ( StringUtils.isEmpty( patient.getId() ) && StringUtils.isEmpty( identifier.getValue() ) ) || patient.getIdElement().getIdPart().equals( identifier.getValue() ),
+							"%s does not correspond to \"%s\"", patient.getId(), typeManager.formatIdValue( PatientIdentifierTypeEnum.PATIENT_ID, identifier.getValue() ) );
 						person.setId( Integer.parseInt( identifier.getValue() ) );
 					} catch( NumberFormatException e ) {
 						throw new IllegalArgumentException( String.format( "The value of the system identifier \"%s\" can only be a number", idInfo.getUriTypeAsString() ), e );
@@ -68,6 +73,15 @@ public class PatientIdentifierMappingImpl implements PatientIdentifierMapping {
 					PersonDoc personDoc = new PersonDoc();
 					personDoc.setDocType( new DocType( idInfo.getIdentifierType().toString() ) );
 					personDoc.setDocValue( identifier.getValue() );
+					
+					Period period = identifier.getPeriod();
+					if( period != null ) {
+						if( period.getStart() != null && period.getEnd() != null )
+							Validate.isTrue( period.getStart().before( period.getEnd() ), "The start date must occur before than the end date inside \"%s\" system identifier", identifier.getSystem() );
+						personDoc.setCreateDate( toCalendar( period.getStart() ) );
+						personDoc.setDeleteDate( toCalendar( period.getEnd() ) );
+					}
+										
 					person.getDocs().add( personDoc );
 				}
 			}
@@ -86,7 +100,39 @@ public class PatientIdentifierMappingImpl implements PatientIdentifierMapping {
 			
 			addIdentifier( patient, idInfo.getIdentifierType(), patientData.getDocValue(), null, null );
 		}
+	}
+	
+	@Override
+	public Reference buildPatientReference( Integer personaId ) {
+		Reference reference = null;
+		if( personaId != null ) {
+			reference = new Reference();
+			Patient patient = new Patient();
+			addIdentifier( patient, PATIENT_ID, personaId, null, null );
+			reference.setIdentifier( patient.getIdentifier().iterator().next() );
+			reference.setResource( patient );
+		}
+		return reference;
+	}
+	
+	@Override
+	public Integer getIdFromReference( Reference patientReference ) {
+		Integer id = null;
+		if( patientReference != null ) {
+			try {
+				String relativePath = patientReference.getReference();
+				Validate.isTrue( StringUtils.isNotEmpty( relativePath ), "Empty patient reference" );
+				Validate.isTrue( relativePath.indexOf( REFERENCE_PREFIX ) == 0, "Wrong patient reference \"%s\"", relativePath );
+				String idAsString = relativePath.substring( REFERENCE_PREFIX.length() );
+				id = Integer.parseInt( idAsString );
+			} catch( NumberFormatException e ) {
+				throw new IllegalArgumentException( String.format( "The id \"%s\" is not valid patient identifier, number expected instead", patientReference.getId() ) );
+			}
+		}
+		return id;
 	}	
+	
+	
 	
 /*
  * private methods
@@ -115,5 +161,15 @@ public class PatientIdentifierMappingImpl implements PatientIdentifierMapping {
 			}
 		}
 	}
+	
+	private Calendar toCalendar( Date date ) {
+		Calendar cal = null;
+		if( date != null ) {
+			cal = Calendar.getInstance();
+			cal.setTime( date );
+		}
+		return cal;
+	}
+			
 
 }

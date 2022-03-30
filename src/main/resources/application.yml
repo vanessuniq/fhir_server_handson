@@ -1,0 +1,102 @@
+
+#server:
+#    servlet:
+#        context-path: /saintmartinhospital
+
+spring:
+    datasource:
+        url: jdbc:h2:mem:testdb
+        driveClassName: org.h2.Driver
+        username: saintmartin
+        pasword:
+    jpa:
+        database-platform: org.hibernate.dialect.H2Dialect
+        hibernate:
+            ddl-auto: create
+        show-sql: true
+        properties:
+            hibernate:
+                format_sql: true
+    h2:
+        console:
+            enabled: true
+    jackson:
+        default-property-inclusion: NON_NULL
+
+logging:
+    level:
+        org:
+            hibernate:
+                SQL: INFO
+
+
+#
+# FHIR configuration
+#
+
+fhir:
+    hospital:
+        url: https://saintmartinhospital.org/
+    identifier:
+        patient:
+            id:
+                baseurl: ${fhir.hospital.url}
+            ni:
+                baseurl: https://www.national-office.gov
+            pp:
+                baseurl: https://www.foreign-affairs.gov
+
+
+#
+# Initial data
+#
+
+data:
+    doctype:
+        list:
+            # abrev,desc
+            - NI,National Identifier
+            - PP,Passport
+    person:
+        list:
+            # first name,second_name,lastname,birthdate,gender,email,nick_name,docs
+            - John,Winston,Lennon,1940-10-09,male,john.lennon@beatles.uk,Johnny,NI|7766553
+            - James,Paul,McCartney,1942-06-18,male,paul.mccartney@beatles.uk,Macca,NI|23454388 PP|P23454388E
+            - George,,Harrison,1943-02-25,male,george.harrison@beatles.uk,,NI|434343 PP|78785656
+            - Richard,,Starkey,1940-07-07,male,ringo.starr@beatles.uk,Ringo Starr,PP|P4414541E NI|9988776
+            - Pablo,Diego,Ruiz Picasso,1881-10-25,male,pablo.picasso@cubism.org,,NI|3413423 PP|P234234E
+            - John,,Kennedy Fitzgerald,1917-05-29,male,john.kennedy@president.com,Jack,NI|12346134
+            - John,Richard,Deacon,1951-08-19,male,john.deacon@queenmusic.uk,,NI|09099898
+            - John,,Miles,1949-04-23,male,john.miles@music.uk,,NI|867096 PP|P987696U
+            - John,Paul,Jones,1946-01-03,male,john.paul.jones@ledzeppelin.uk,,NI|1452356
+            - John,Patrick,McEnroe,1959-02-16,male,john.mcenroe@tennis.com,,NI|12341561
+            - John,,Coltrane,1926-07-17,male,john.coltrane@jazz.com,,NI|12341235
+            - John,,Scofield,1951-12-26,male,john.scofield@jazz.com,Sco,NI|11545672
+            - John,,McLaughlin,1942-01-04,male,john.mclaughlin@jazz.com,,NI|145256267
+            - John,Aaron,Lewis,1920-05-03,male,john.lewis@jazz.com,,NI|123451234
+            - John,,Entwistle,1944-10-09,male,john.entwistle@thewho.uk,,NI|1235415
+            - Ella,Jane,Fitzgerald,1917-04-25,female,ella.fitzgerald@jazz.com,,NI|23498
+            - Eunice,Kathleen,Waymon,1933-02-21,female,nina.simone@jazz.com,Nina Simone,NI|38389
+            - Dorothea,,Lange,1895-05-26,female,dorothea.lange@photographer.com,,NI|9393
+            - Anna,Lou,Leibovitz,1949-10-02,female,anna.leibovitz@photographer.com,Annie,NI|94093
+            - Mary,Ellen,Mark,1940-03-20,female,mary.mark@photographer.com,,NI|904245
+            - Vivian,Dorothy,Maier,1926-02-01,female,vivian.maier@photographer.com,,NI|123332
+            - Audrey,,Hepburn,1929-05-04,female,audrey.hepburn@actress.com,,PP|B23451
+            - Sofia,Villani,Scicolone,1934-09-20,female,sofia.loren@actress.com,Sofia Loren,PP|I254234
+            - Paul,,Nicklen,1968-07-21,male,paul.nicklen@photographer.com,,NI|234834
+            - Richard,,Avedon,1923-05-15,male,richard.avedon@photographer.com,,NI|1994849
+            - Paul,Frederic,Simon,1941-10-13,male,paul.simon@music.com,,NI|494949
+            - George,,Braque,1882-05-13,male,george.braque@cubism.com,,PP|94594944
+            - Jerry,,Lewis,1926-03-16,male,jerry.lewis@hollywood.com,,NI|2349
+            
+    medicine:
+        list:
+            # system, code, description
+            - RXNORM,857001,Acetaminophen 325 MG / Hydrocodone Bitartrate 10 MG Oral Tablet
+            - RXNORM,1049621,Oxycodone Hydrochloride 5 MG Oral Tablet
+
+    prescription:
+        list:
+            # document type, document num, system, code, state, dose desc, dose freq days, dose quantity
+            - NI,3413423,RXNORM,857001,valid,,1,1.5
+            - NI,11545672,RXNORM,1049621,raw,,1,1

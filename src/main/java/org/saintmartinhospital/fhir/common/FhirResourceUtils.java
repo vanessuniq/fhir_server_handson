@@ -55,7 +55,7 @@ public class FhirResourceUtils {
             try {
                 str = sdf.format( calendar.getTime() );
             } catch( IllegalArgumentException e ) {
-                throw new IllegalArgumentException( String.format( "El formato de la fecha [%s] no es válido", sdf.toPattern() ), e );
+                throw new IllegalArgumentException( String.format( "Not valid date format [%s]", sdf.toPattern() ), e );
             }
         }
         

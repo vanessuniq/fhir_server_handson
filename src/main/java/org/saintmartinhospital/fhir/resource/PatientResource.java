@@ -6,6 +6,7 @@ import ca.uhn.fhir.rest.annotation.OptionalParam;
 import ca.uhn.fhir.rest.annotation.Read;
 import ca.uhn.fhir.rest.annotation.ResourceParam;
 import ca.uhn.fhir.rest.annotation.Search;
+import ca.uhn.fhir.rest.annotation.Update;
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.api.server.IBundleProvider;
 import ca.uhn.fhir.rest.param.DateParam;
@@ -52,7 +53,7 @@ public class PatientResource implements IResourceProvider {
 	}
 
 	@Search()
-	public IBundleProvider findByCriteria( @OptionalParam( name = Patient.SP_NAME ) StringParam name, @OptionalParam( name = FAMILY ) StringParam fathersFamily,
+	public IBundleProvider findByCriteria( @OptionalParam( name = Patient.SP_NAME ) StringParam name, @OptionalParam( name = Patient.SP_FAMILY ) StringParam fathersFamily,
 			@OptionalParam( name = Patient.SP_IDENTIFIER ) TokenParam doc, @OptionalParam( name = Patient.SP_BIRTHDATE ) DateParam birthdate,
 			@OptionalParam( name = Patient.SP_GENDER ) StringParam gender ) {
 		try {
@@ -74,8 +75,10 @@ public class PatientResource implements IResourceProvider {
 	@Create
 	public MethodOutcome create( @ResourceParam Patient patient ) {
 		MethodOutcome outcome = new MethodOutcome();
-		outcome.setId( new IdType( RESOURCE_TYPE,  patientService.create( patient ).longValue() ) );
+		outcome.setId( new IdType( RESOURCE_TYPE, patientService.create( patient ).longValue() ) );
 		return outcome;		
 	}
+	
+    // TODO: Micro-Assignment #J-1
 	
 }

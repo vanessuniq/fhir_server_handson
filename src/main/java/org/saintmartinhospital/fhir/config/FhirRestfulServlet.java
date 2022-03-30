@@ -11,17 +11,15 @@ import ca.uhn.fhir.rest.server.RestfulServer;
 import ca.uhn.fhir.rest.server.interceptor.RequestValidatingInterceptor;
 import ca.uhn.fhir.validation.FhirValidator;
 import ca.uhn.fhir.validation.ResultSeverityEnum;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.input.BOMInputStream;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.hl7.fhir.exceptions.FHIRException;
@@ -33,30 +31,38 @@ import org.hl7.fhir.r4.hapi.validation.FhirInstanceValidator;
 import org.hl7.fhir.r4.hapi.validation.PrePopulatedValidationSupport;
 import org.hl7.fhir.r4.hapi.validation.ValidationSupportChain;
 import org.hl7.fhir.r4.model.StructureDefinition;
-import org.hl7.fhir.utilities.validation.ValidationMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.ResourceLoader;
 
 
 @WebServlet( urlPatterns = { "/fhir/*" }, displayName = "FHIR Server", loadOnStartup = 1 )
 public class FhirRestfulServlet extends RestfulServer {
 	
 	private static final long serialVersionUID = 1L;
-	private static final String PROFILES_DIRECTORY = "fhir/profiles";
-	private static final String XML_EXTENSION = ".xml";	
+	private static final String PROFILES_DIRECTORY = "classpath:fhir/profiles/";
+	private static final List<String> PROFILES = new ArrayList<>();
+	static {
+		PROFILES.add( "saintmartinhospital.patient.structuredefinition.xml" );
+		PROFILES.add( "saintmartinhospital.medicationrequest.structuredefinition.xml" );		
+	}
 
     private static final Logger LOGGER = LoggerFactory.getLogger( FhirRestfulServlet.class );
 	private static final int MAX_QTY_PAGING_PROVIDERS = 10;
 	private static final int DEFAULT_PAGE_SIZE = 5;
 	private static final int MAX_PAGE_SIZE = 100;
 	
+	@Autowired
+	private ResourceLoader resourceLoader;
+	
 
 	public FhirRestfulServlet() {
 		super( FhirContext.forR4() );
 	}
-	
-	@Override
+		
+    @Override
 	protected void initialize() throws ServletException {
 		LOGGER.debug( "fhir restful server configuration ... " );
 		
@@ -74,7 +80,7 @@ public class FhirRestfulServlet extends RestfulServer {
 		pagingProvider.setDefaultPageSize( DEFAULT_PAGE_SIZE );
 		pagingProvider.setMaximumPageSize( MAX_PAGE_SIZE );
 		setPagingProvider( pagingProvider );
-		
+				
 		// Set validator
 		FhirContext fhirContext = getFhirContext();
 		FhirValidator validator = fhirContext.newValidator();
@@ -98,19 +104,20 @@ public class FhirRestfulServlet extends RestfulServer {
 	
 	private FhirInstanceValidator getInstanceValidator( FhirContext context ) {
 		FhirInstanceValidator validator = null;
-		ClassLoader classLoader = getClass().getClassLoader();
-		
+        
+        // TODO: Micro-Assignment #J-4
+
 		try {
-			File[] files = new File( classLoader.getResource( PROFILES_DIRECTORY ).toURI() ).listFiles( new FileFilter() {
-				@Override
-				public boolean accept( File file ) {
-					return !file.isDirectory() && file.getName().toLowerCase().endsWith( XML_EXTENSION );
-				}
-			});
+			// Get the input stream of each profile
+			List<InputStream> files = new ArrayList<>();
+			for( String profile: PROFILES )
+				files.add( resourceLoader.getResource( PROFILES_DIRECTORY + profile ).getInputStream() );
 			
-			if( ArrayUtils.isEmpty( files ) )
+			if( CollectionUtils.isEmpty( files ) ) {
+				// Create a default instance validator
 				validator = new FhirInstanceValidator();
-			else {
+			} else {
+				// Create an instance validator using the profiles
 				PrePopulatedValidationSupport valSupport = new PrePopulatedValidationSupport();
 				DefaultProfileValidationSupport defaultSupport = new DefaultProfileValidationSupport();
 				ValidationSupportChain support = new ValidationSupportChain( valSupport, defaultSupport );
@@ -121,33 +128,32 @@ public class FhirRestfulServlet extends RestfulServer {
 			}
 			
 			return validator;
-		} catch( URISyntaxException e ) {
-			throw new IllegalStateException( String.format( "Can't create URI from [%s]", classLoader.getResource( PROFILES_DIRECTORY ) ), e );
+		} catch( IOException e ) {
+			throw new IllegalStateException( String.format( "Can't find profiles [%s]", PROFILES_DIRECTORY ), e );
 		}
 	}
 	
-	private void loadStructureDefinitions( FhirContext context, PrePopulatedValidationSupport valSupport, DefaultProfileValidationSupport defaultSupport, File[] files ) {
-		if( ArrayUtils.isNotEmpty( files ) ) {
+	private void loadStructureDefinitions( FhirContext context, PrePopulatedValidationSupport valSupport, DefaultProfileValidationSupport defaultSupport, List<InputStream> files ) {
+		if( CollectionUtils.isNotEmpty( files ) ) {
 			StructureDefinition derived, base;
 			IParser parser = context.newXmlParser();
 			
 			IWorkerContext workerContext = new HapiWorkerContext( context, defaultSupport );
-			ProfileUtilities profileUtilities = new ProfileUtilities( workerContext, new ArrayList<ValidationMessage>(), null );
+			ProfileUtilities profileUtilities = new ProfileUtilities( workerContext, new ArrayList<>(), null );
 			
-			for( File curFile: files ) {
+			for( InputStream file: files ) {
 				try {
 					// Create and prepare derived structure definition
-					derived = parser.parseResource( StructureDefinition.class, new InputStreamReader( new BOMInputStream( new FileInputStream( curFile ) ) ) );
+					derived = parser.parseResource( StructureDefinition.class, new InputStreamReader( new BOMInputStream( file ) ) );
 					base = defaultSupport.fetchStructureDefinition( context, derived.getBaseDefinition() );
 					Validate.notNull( base );
 					profileUtilities.generateSnapshot( base, derived, StringUtils.EMPTY, StringUtils.EMPTY );
 					
 					// Add derived definition to valSupport
 					valSupport.addStructureDefinition( derived );
-				} catch( FileNotFoundException e ) {
-					LOGGER.error( String.format( "Profile [%s] not found", curFile.getAbsolutePath() ), e );
+					
 				} catch( FHIRException e ) {
-					LOGGER.error( String.format( "Can't load profile [%s]", curFile.getAbsolutePath() ), e );
+					LOGGER.error( String.format( "Can't load profile", e ) );
 				}
 			}
 		}
@@ -155,3 +161,5 @@ public class FhirRestfulServlet extends RestfulServer {
 	
 
 }
+
+

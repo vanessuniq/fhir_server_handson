@@ -3,7 +3,7 @@ package org.saintmartinhospital.fhir.service.patient.converter.mappings.impl;
 import java.util.Calendar;
 import org.apache.commons.lang3.Validate;
 import org.hl7.fhir.r4.model.Patient;
-import org.saintmartinhospital.business.domain.Person;
+import org.saintmartinhospital.legacy.domain.Person;
 import org.saintmartinhospital.fhir.service.patient.converter.PatientData;
 import org.springframework.stereotype.Component;
 import org.saintmartinhospital.fhir.service.patient.converter.mappings.PatientBirthDateMapping;

@@ -1,0 +1,15 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot-LegacyBackendApplication<legacy-backend-micro-assignment>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "mainClass": "org.saintmartinhospital.LegacyBackendApplication",
+      "projectName": "legacy-backend-micro-assignment",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ]
+}

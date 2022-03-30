@@ -1,7 +1,7 @@
 package org.saintmartinhospital.fhir.service.patient.converter.mappings;
 
 import org.hl7.fhir.r4.model.Patient;
-import org.saintmartinhospital.business.domain.Person;
+import org.saintmartinhospital.legacy.domain.Person;
 
 
 public interface PatientDataMapping {
