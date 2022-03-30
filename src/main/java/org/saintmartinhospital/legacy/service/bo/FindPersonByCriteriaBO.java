@@ -10,27 +10,30 @@ import org.saintmartinhospital.legacy.domain.GenderEnum;
 @Getter
 @Builder
 public class FindPersonByCriteriaBO {
-	
-	private final Integer id;
-	private final String name;
-	private final String lastName;
-	private final String docTypeAbrev;
-	private final String docValue;
-	private final GenderEnum gender;
-	private final Calendar birthDate;
-	
-	
-	public static FindPersonByCriteriaBOBuilder builder() {
-		return new CustomFindPersonByCriteriaBOBuilder();
-	}
-	
-	private static class CustomFindPersonByCriteriaBOBuilder extends FindPersonByCriteriaBOBuilder {
-        @Override
-		public FindPersonByCriteriaBO build() {
-			Validate.isTrue( StringUtils.isNotBlank( super.name ) || StringUtils.isNotBlank( super.lastName ) || super.id != null ||
-				( StringUtils.isNotBlank( super.docTypeAbrev ) && StringUtils.isNotBlank( super.docValue ) ), "Missing mandatory criteria property" );
-			return super.build();
-		}
-	}
+
+  private final Integer id;
+  private final String name;
+  private final String lastName;
+  private final String docTypeAbrev;
+  private final String docValue;
+  private final GenderEnum gender;
+  private final Calendar birthDate;
+  private final String email;
+
+  public static FindPersonByCriteriaBOBuilder builder() {
+    return new CustomFindPersonByCriteriaBOBuilder();
+  }
+
+  private static class CustomFindPersonByCriteriaBOBuilder extends FindPersonByCriteriaBOBuilder {
+    @Override
+    public FindPersonByCriteriaBO build() {
+      Validate.isTrue(
+          StringUtils.isNotBlank(super.name) || StringUtils.isNotBlank(super.lastName) || super.id != null ||
+              (StringUtils.isNotBlank(super.docTypeAbrev) && StringUtils.isNotBlank(super.docValue))
+              || StringUtils.isNotBlank(super.email),
+          "Missing mandatory criteria property");
+      return super.build();
+    }
+  }
 
 }

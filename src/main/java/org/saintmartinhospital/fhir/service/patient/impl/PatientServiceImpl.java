@@ -37,10 +37,10 @@ public class PatientServiceImpl implements PatientService {
   @Transactional
   @Override
   public IBundleProvider findByCriteria(String name, String family, String docSystem, String docValue,
-      Calendar birthDate, String gender) throws IllegalArgumentException {
+      Calendar birthDate, String gender, String email) throws IllegalArgumentException {
     // Build a patient from the parameters and then get the person
     PatientData patientData = PatientData.builder().name(name).lastName(family).docSystem(docSystem).docValue(docValue)
-        .birthDate(birthDate).gender(gender).build();
+        .birthDate(birthDate).gender(gender).email(email).build();
     Patient patient = converter.buildPatient(patientData);
     Person person = converter.convertToEntity(patient);
 
@@ -55,7 +55,7 @@ public class PatientServiceImpl implements PatientService {
 
     FindPersonByCriteriaBO criteriaBO = FindPersonByCriteriaBO.builder().id(person.getId()).name(person.getFirstName())
         .lastName(person.getLastName()).docTypeAbrev(personDocAbrev).docValue(personDocValue)
-        .birthDate(person.getBirthDate()).gender(person.getGender()).build();
+        .birthDate(person.getBirthDate()).gender(person.getGender()).email(person.getEmail()).build();
 
     return new ListBundleProvider(personService.findByCriteria(criteriaBO), converter);
   }

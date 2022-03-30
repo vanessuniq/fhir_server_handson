@@ -14,5 +14,6 @@ public class PatientData {
   private final String docValue;
   private final String gender;
   private final Calendar birthDate;
+  private final String email;
 
 }
