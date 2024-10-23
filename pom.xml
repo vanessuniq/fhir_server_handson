@@ -19,7 +19,7 @@
 		<java.version>1.8</java.version>
 		
 		<apache.commons-collections.version>4.1</apache.commons-collections.version>
-		<hapi-fhir.version>3.8.0</hapi-fhir.version>
+		<hapi-fhir.version>7.4.5</hapi-fhir.version>
 	</properties>
 
 	<dependencies>
